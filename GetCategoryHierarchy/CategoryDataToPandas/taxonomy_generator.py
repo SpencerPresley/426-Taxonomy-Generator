@@ -15,8 +15,6 @@ DATA_DIR = os.path.join(SCRIPT_DIR, "../data/ncsesTaxonomy")
 # Define the JSON output directory relative to the current script directory
 JSON_OUTPUT_DIR = os.path.join(SCRIPT_DIR, "../data/taxonomyJson")
 
-
-
 # Function to read Excel files from a directory and convert them to a single DataFrame
 def read_excel_file(file_path):
     df = pd.read_excel(file_path)
@@ -73,22 +71,41 @@ def construct_category_hierarchy(df):
     category_hierarchy = CategoryHierarchy(area_categories=area_categories)
     return category_hierarchy
 
-def category_hierarchy_to_json(category_hierarchy):
-    # Use the to_dict method of CategoryHierarchy to convert to a dictionary
-    # which will cascade to the other classes and their to_dict methods
-    hierarchy_dict = category_hierarchy.to_dict()
-    
-    # Convert the dictionary to a JSON string
-    return json.dumps(hierarchy_dict, indent=4)
+def print_pandas_structure(df):
+    # Set pandas display options for better readability
+    pd.set_option('display.max_rows', 10)  # Limit the number of rows displayed
+    pd.set_option('display.max_columns', None)  # Show all columns
+    pd.set_option('display.width', 1000)  # Set the display width to avoid line breaks
+    pd.set_option('display.max_colwidth', 50)  # Limit the width of each column
+    pd.set_option('display.float_format', '{:.2f}'.format)  # Format floats to 2 decimal places
+
+    print("DataFrame Head:")
+    print(df.head())  # Print the first few rows of the DataFrame
+    print("\nColumns:")
+    print(df.columns)  # Print the column names
+    print("\nIndex:")
+    print(df.index)  # Print the index
+    print("\nData Types:")
+    print(df.dtypes)  # Print the data types of each column
+    print("\nShape:")
+    print(df.shape)  # Print the shape of the DataFrame
+    print("\nInfo:")
+    print(df.info())  # Print concise summary of the DataFrame
+    print("\nDescribe:")
+    print(df.describe(include='all'))  # Print summary statistics for all columns
 
 df = get_ncses_taxonomy_data_as_df(DATA_DIR)
+# Uncomment to print the pandas structure of the dataframe along with a few other details
+# print_pandas_structure(df)
 category_hierarchy = construct_category_hierarchy(df)
-category_hierarchy_json = category_hierarchy_to_json(category_hierarchy)
-print(category_hierarchy_json)
 
 json_file_path = os.path.join(JSON_OUTPUT_DIR, 'taxonomy_hierarchy.json')
 
 # Save the JSON data to a file
+# the .to_dict() method is used to convert the dataclass object to a dictionary
+# each to_dict() call will cascade through the dataclass and convert each nested dataclass to a dictionary
+# this will continue until all nested dataclasses are converted to dictionaries
+# the resulting dictionary can then be converted to JSON
 with open(json_file_path, 'w') as json_file:
     json.dump(category_hierarchy.to_dict(), json_file, indent=4)
 
